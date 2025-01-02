@@ -131,27 +131,3 @@
 // }
 
 // export default Login;
-import React from 'react'
-
-function Login() {
-  return (
-    <div>
-
-        {/* <div class="px-[15px]">
-        <h1 class="text-center text-3xl mb-3">My Portfolio</h1>
-        <div class="max-w-[1440px] mx-auto">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="bg-red-500 text-white rounded h-32">01</div>
-                <div class="bg-red-500 text-white rounded h-32">01</div>
-                <div class="bg-red-500 text-white rounded h-32">01</div>
-                <div class="bg-red-500 text-white rounded h-32">01</div>
-                <div class="bg-red-500 text-white rounded h-32">01</div>
-                <div class="bg-red-500 text-white rounded h-32">09</div>
-            </div>
-        </div>
-    </div> */}
-    </div>
-  )
-}
-
-export default Login

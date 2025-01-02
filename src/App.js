@@ -13,6 +13,8 @@ import Home from './component/Home';
 
 import './index.css'
 import About from './component/About';
+import Login1 from './component/Login1';
+import SignIn1 from './component/SignIn1';
 function App() {
   return (
     <BrowserRouter>
@@ -27,6 +29,10 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/login1" element={<Login1 />} />
+        <Route path="/SignIn1" element={<SignIn1 />} />
+        
+        
         
         
         

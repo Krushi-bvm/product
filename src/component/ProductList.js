@@ -1,272 +1,253 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Card, CardContent, CardMedia, Typography, Box, TextField, MenuItem, Slider, Button, TablePagination, IconButton, Badge, AppBar, Toolbar, Container } from '@mui/material';
-import { styled } from '@mui/system';
+import {
+  Grid,
+  TextField,
+  MenuItem,
+  Slider,
+  Button,
+  TablePagination,
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Badge,
+} from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from './feature/TaskSlice';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { ToastContainer } from 'react-toastify';
 
-// Styled Components for better UI
-const StyledCard = styled(Card)({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  borderRadius: '10px',
-  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  height: '100%', // Ensure all cards have the same height
-  width: '100%', // Ensure all cards have the same width
-  maxWidth: 350, // Set a max-width for the card
-  '&:hover': {
-      transform: 'scale(1.05)',
-      boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
-  },
-});
+// Styled Components
+const StyledCard = ({ children }) => (
+  <div className="flex flex-col justify-between bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow transform hover:scale-105">
+    {children}
+  </div>
+);
 
-const StyledCardMedia = styled(CardMedia)({
-  height: 200,  // Fixed height for the image
-  objectFit: 'cover',
-  borderRadius: '10px',
-});
+const StyledCardMedia = ({ image, alt, onClick }) => (
+  <img
+    src={image}
+    alt={alt}
+    className="h-48 w-full object-cover rounded-t-lg cursor-pointer"
+    onClick={onClick}
+  />
+);
 
 const NavBar = () => {
-    const navigate = useNavigate();
-    const cartProduct = useSelector((state) => state.products);
-    const cartCount = cartProduct.length; // Get the count of items in the cart
-    return (
-        <AppBar position="sticky">
-            <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => navigate('/')}>
-                    E-Commerce App
-                </Typography>
-                <IconButton color="inherit" onClick={() => navigate('/cart')}>
-                    <Badge badgeContent={cartCount} color="error">
-                        <ShoppingCartIcon />
-                    </Badge>
-                </IconButton>
-            </Toolbar>
-        </AppBar>
-    );
+  const navigate = useNavigate();
+  const cartProduct = useSelector((state) => state.products);
+  const cartCount = cartProduct.length;
+
+  return (
+    <AppBar position="sticky">
+      <Toolbar>
+        <Typography variant="h6" sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => navigate('/')}>
+          E-Commerce App
+        </Typography>
+        <IconButton color="inherit" onClick={() => navigate('/cart')}>
+          <Badge badgeContent={cartCount} color="error">
+            <ShoppingCartIcon />
+          </Badge>
+        </IconButton>
+      </Toolbar>
+    </AppBar>
+  );
 };
 
 function ProductList() {
-    const [productList, setProductList] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [priceRange, setPriceRange] = useState([0, 1000]);
-    const [rating, setRating] = useState(0);
-    const [sortOption, setSortOption] = useState('priceLowToHigh'); // New state for sorting
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const [productList, setProductList] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [rating, setRating] = useState(0);
+  const [sortOption, setSortOption] = useState('priceLowToHigh');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    // Access cart items from the Redux store
-  
+  const getProductList = async () => {
+    try {
+      const response = await fetch('https://fakestoreapi.com/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      setProductList(data);
+      setFilteredProducts(data);
 
-    const getProductList = async () => {
-        try {
-            const response = await fetch('https://fakestoreapi.com/products');
-            if (!response.ok) {
-                throw new Error('Failed to fetch products');
-            }
-            const data = await response.json();
-            setProductList(data);
-            setFilteredProducts(data);
+      const uniqueCategories = [...new Set(data.map((product) => product.category))];
+      setCategories(uniqueCategories);
+    } catch (error) {
+      console.error('Error fetching product list:', error);
+    }
+  };
 
-            const uniqueCategories = [...new Set(data.map((product) => product.category))];
-            setCategories(uniqueCategories);
-        } catch (error) {
-            console.error('Error fetching product list:', error);
-        }
-    };
+  const handleSort = (products) => {
+    switch (sortOption) {
+      case 'priceLowToHigh':
+        return products.sort((a, b) => a.price - b.price);
+      case 'priceHighToLow':
+        return products.sort((a, b) => b.price - a.price);
+      default:
+        return products;
+    }
+  };
 
-    // Sorting function
-    const handleSort = (products) => {
-        switch (sortOption) {
-            case 'priceLowToHigh':
-                return products.sort((a, b) => a.price - b.price);
-            case 'priceHighToLow':
-                return products.sort((a, b) => b.price - a.price);
-            case 'newestFirst':
-                return products.sort((a, b) => new Date(b.date) - new Date(a.date)); // Assuming date is available
-            default:
-                return products;
-        }
-    };
+  const handleFilter = () => {
+    let filtered = productList.filter((product) => {
+      const inCategory = selectedCategory ? product.category === selectedCategory : true;
+      const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
+      const meetsRating = product.rating.rate >= rating;
 
-    const handleFilter = () => {
-        let filtered = productList.filter((product) => {
-            const inCategory = selectedCategory ? product.category === selectedCategory : true;
-            const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
-            const meetsRating = product.rating.rate >= rating;
+      return inCategory && inPriceRange && meetsRating;
+    });
 
-            return inCategory && inPriceRange && meetsRating;
-        });
+    filtered = handleSort(filtered);
+    setFilteredProducts(filtered);
+    setPage(0);
+  };
 
-        // Apply sorting after filtering
-        filtered = handleSort(filtered);
+  const handleRemoveFilters = () => {
+    setSelectedCategory('');
+    setPriceRange([0, 1000]);
+    setRating(0);
+    setFilteredProducts(productList);
+    setPage(0);
+  };
 
-        setFilteredProducts(filtered);
-        setPage(0); // Reset to the first page after filtering
-    };
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
-    const handlePageChange = (event, newPage) => {
-        setPage(newPage);
-    };
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
-    const handleRowsPerPageChange = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0); // Reset to the first page when rows per page change
-    };
+  useEffect(() => {
+    getProductList();
+  }, []);
 
-    useEffect(() => {
-        getProductList();
-    }, []);
+  const paginatedProducts = filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-    const paginatedProducts = filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const handleProductView = (id) => {
+    navigate('/view', { state: { id } });
+  };
 
-    const handleProductView = (id) => {
-        navigate('/view', { state: { id } });
-    };
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
+  };
 
-    const handleAddToCart = (product) => {
-        dispatch(addToCart(product));
-    };
+  return (
+    <>
+      <NavBar />
+      <div className="p-6">
+        <h2 className="text-4xl font-bold text-center mb-8">Product List</h2>
+        <div className="flex flex-wrap justify-center gap-4 mb-6">
+          <TextField
+            select
+            label="Sort By"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+            className="w-64"
+          >
+            <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
+            <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
+          </TextField>
+          <TextField
+            select
+            label="Category"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-64"
+          >
+            {/* <MenuItem value="">All Categories</MenuItem> */}
+            {categories.map((category) => (
+              <MenuItem key={category} value={category}>
+                {category}
+              </MenuItem>
+            ))}
+          </TextField>
+          <div className="w-64">
+            <Typography gutterBottom>Price Range</Typography>
+            <Slider
+              value={priceRange}
+              onChange={(e, newValue) => setPriceRange(newValue)}
+              valueLabelDisplay="auto"
+              min={0}
+              max={1000}
+            />
+          </div>
+          <div className="w-64">
+            <Typography gutterBottom>Minimum Rating</Typography>
+            <Slider
+              value={rating}
+              onChange={(e, newValue) => setRating(newValue)}
+              valueLabelDisplay="auto"
+              min={0}
+              max={5}
+              step={0.5}
+            />
+          </div>
+        </div>
+        <div className="flex justify-between">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={handleFilter}
+          >
+            Apply Filters
+          </button>
+          <button
+            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            onClick={handleRemoveFilters}
+          >
+            Remove Filters
+          </button>
+        </div>
 
-    return (
-        <>
-            <NavBar />
-            <Box sx={{ padding: 3, marginTop: '20px' }}>
-                <Typography variant="h4" gutterBottom align="center">
-                    Product List
-                </Typography>
+        {filteredProducts.length === 0 ? (
+          <h3 className="text-center text-gray-500 mt-8">No products found.</h3>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-8">
+            {paginatedProducts.map((product) => (
+              <StyledCard key={product.id}>
+                <StyledCardMedia
+                  image={product.image}
+                  alt={product.title}
+                  onClick={() => handleProductView(product.id)}
+                />
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold">{product.title}</h3>
+                  <p className="text-blue-600 font-bold mt-2">Price: ${product.price}</p>
+                  <p className="text-gray-500">Rating: {product.rating.rate} ({product.rating.count} reviews)</p>
+                  <button
+                    className="bg-green-500 text-white px-4 py-2 rounded mt-4 hover:bg-green-600 w-full"
+                    onClick={() => handleAddToCart(product)}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </StyledCard>
+            ))}
+          </div>
+        )}
 
-                {/* Filters and Sorting Section */}
-                <Box sx={{ marginBottom: 4 }}>
-                    <Grid container spacing={2}>
-                        {/* Sorting Dropdown */}
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                select
-                                label="Sort By"
-                                value={sortOption}
-                                onChange={(e) => setSortOption(e.target.value)}
-                                fullWidth
-                            >
-                                <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
-                                <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
-                                <MenuItem value="newestFirst">Newest First</MenuItem>
-                            </TextField>
-                        </Grid>
-
-                        {/* Category Filter */}
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                select
-                                label="Category"
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                                fullWidth
-                            >
-                                <MenuItem value="">All Categories</MenuItem>
-                                {categories.map((category) => (
-                                    <MenuItem key={category} value={category}>
-                                        {category}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-                        </Grid>
-
-                        {/* Price Range Filter */}
-                        <Grid item xs={12} sm={4}>
-                            <Typography gutterBottom>Price Range</Typography>
-                            <Slider
-                                value={priceRange}
-                                onChange={(e, newValue) => setPriceRange(newValue)}
-                                valueLabelDisplay="auto"
-                                min={0}
-                                max={1000}
-                            />
-                        </Grid>
-
-                        {/* Rating Filter */}
-                        <Grid item xs={12} sm={4}>
-                            <Typography gutterBottom>Minimum Rating</Typography>
-                            <Slider
-                                value={rating}
-                                onChange={(e, newValue) => setRating(newValue)}
-                                valueLabelDisplay="auto"
-                                min={0}
-                                max={5}
-                                step={0.5}
-                            />
-                        </Grid>
-                    </Grid>
-                    <Button variant="contained" color="primary" onClick={handleFilter} sx={{ marginTop: 2 }}>
-                        Apply Filters
-                    </Button>
-                </Box>
-
-                {filteredProducts.length === 0 ? (
-                    <Typography variant="h6" color="text.secondary" align="center">
-                        No products found.
-                    </Typography>
-                ) : (
-                    <>
-                        <Grid container spacing={3}>
-                            {paginatedProducts.map((product) => (
-                                <Grid item xs={12} sm={6} md={4} key={product.id} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <StyledCard>
-                                        <StyledCardMedia
-                                            component="img"
-                                            image={product.image}
-                                            alt={product.title}
-
-                                            onClick={() => handleProductView(product.id)}
-                                        />
-                                        <CardContent>
-                                            <Typography variant="h6" component="div">
-                                                {product.title}
-                                            </Typography>
-                                            <Typography variant="body1" color="text.primary" sx={{ marginTop: 1 }}>
-                                                <strong>Price:</strong> ${product.price}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                <strong>Rating:</strong> {product.rating.rate} ({product.rating.count} reviews)
-                                            </Typography>
-                                            <Button
-                                                variant="contained"
-                                                color="secondary"
-                                                fullWidth
-                                                sx={{ marginTop: 2 }}
-                                                onClick={() => handleAddToCart(product)}
-                                            >
-                                                Add to Cart
-                                            </Button>
-                                        </CardContent>
-                                    </StyledCard>
-                                </Grid>
-                            ))}
-                        </Grid>
-
-                        <TablePagination
-                            component="div"
-                            count={filteredProducts.length}
-                            page={page}
-                            onPageChange={handlePageChange}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={handleRowsPerPageChange}
-                            rowsPerPageOptions={[10, 20]}
-                        />
-                    </>
-                )}
-                <ToastContainer position="top-right" autoClose={3000} />
-            </Box>
-        </>
-    );
+        <TablePagination
+          component="div"
+          count={filteredProducts.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          rowsPerPageOptions={[10, 20]}
+        />
+        <ToastContainer position="top-right" autoClose={3000} />
+      </div>
+    </>
+  );
 }
 
 export default ProductList;

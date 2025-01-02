@@ -1,14 +1,9 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton } from '@mui/material';
 import { removeFromCart, updateQuantity } from './feature/TaskSlice'; // Assuming updateQuantity action exists
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 
 function Cart() {
   const cartItems = useSelector((state) => state.products); // Get cart items from Redux store
-  console.log(cartItems);
-  
   const dispatch = useDispatch();
 
   const handleRemoveFromCart = (productId) => {
@@ -28,74 +23,71 @@ function Cart() {
   };
 
   return (
-    <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Cart
-      </Typography>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-3xl font-semibold mb-6 text-center">Cart</h1>
 
       {cartItems?.length === 0 ? (
-        <Typography variant="h6" color="text.secondary">
-          Your cart is empty.
-        </Typography>
+        <div className="text-center text-lg text-gray-600">Your cart is empty.</div>
       ) : (
         <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Product</TableCell>
-                  <TableCell align="right">Price</TableCell>
-                  <TableCell align="right">Quantity</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            <table className="min-w-full text-left border-collapse">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="py-3 px-4 font-semibold text-sm text-gray-600">Product</th>
+                  <th className="py-3 px-4 font-semibold text-sm text-gray-600 text-right">Price</th>
+                  <th className="py-3 px-4 font-semibold text-sm text-gray-600 text-right">Quantity</th>
+                  <th className="py-3 px-4 font-semibold text-sm text-gray-600 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
                 {cartItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.title}</TableCell>
-                    <TableCell align="right">${item.price}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleDecrementQuantity(item.id)}
-                        disabled={item.quantity === 1} // Disable decrement if quantity is 1
-                      >
-                        <RemoveIcon />
-                      </IconButton>
-                      {item.quantity}
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleIncrementQuantity(item.id)}
-                      >
-                        <AddIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Button
-                        variant="outlined"
-                        color="secondary"
+                  <tr key={item.id} className="border-b hover:bg-gray-100">
+                    <td className="py-3 px-4 text-sm text-gray-800">{item.title}</td>
+                    <td className="py-3 px-4 text-sm text-gray-800 text-right">${item.price.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-sm text-gray-800 text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => handleDecrementQuantity(item.id)}
+                          className="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400"
+                          disabled={item.quantity === 1}
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          onClick={() => handleIncrementQuantity(item.id)}
+                          className="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-800 text-right">
+                      <button
                         onClick={() => handleRemoveFromCart(item.id)}
+                        className="text-red-500 hover:underline"
                       >
                         Remove
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </tbody>
+            </table>
+          </div>
 
-          <Box sx={{ marginTop: 2, textAlign: 'right' }}>
-            <Typography variant="h6">
-              <strong>Total:</strong> ${calculateTotal().toFixed(2)}
-            </Typography>
-            <Button variant="contained" color="primary" sx={{ marginTop: 2 }}>
+          <div className="mt-6 flex justify-between items-center">
+            <p className="text-lg font-semibold">
+              Total: <span className="text-blue-600">${calculateTotal().toFixed(2)}</span>
+            </p>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
               Proceed to Checkout
-            </Button>
-          </Box>
+            </button>
+          </div>
         </>
       )}
-    </Box>
+    </div>
   );
 }
 
